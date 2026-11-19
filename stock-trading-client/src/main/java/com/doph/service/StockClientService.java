@@ -120,4 +120,51 @@ public class StockClientService {
             requestObserver.onError(ex);
         }
     }
+
+    public void startLiveTrading() throws InterruptedException {
+        StreamObserver<StockOrder> requestObserver = asyncStub.liveTrading(new StreamObserver<TradeStatus>() {
+            @Override
+            public void onNext(TradeStatus status) {
+                System.out.println("Server response: "+status);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("Error: "+t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Stream completed.");
+            }
+        });
+
+        List<StockOrder> liveOrders = List.of(
+                StockOrder.newBuilder().setOrderId("ORD-101").setStockSymbol("AAPL").setQuantity(10).setPrice(228.50).setOrderType("BUY").build(),
+                StockOrder.newBuilder().setOrderId("ORD-102").setStockSymbol("NVDA").setQuantity(5).setPrice(142.65).setOrderType("BUY").build(),
+                StockOrder.newBuilder().setOrderId("ORD-103").setStockSymbol("TSLA").setQuantity(2).setPrice(315.40).setOrderType("SELL").build(),
+                StockOrder.newBuilder().setOrderId("ORD-104").setStockSymbol("GOOGL").setQuantity(0).setPrice(176.20).setOrderType("BUY").build(),
+                StockOrder.newBuilder().setOrderId("ORD-105").setStockSymbol("MSFT").setQuantity(4).setPrice(425.80).setOrderType("SELL").build(),
+                StockOrder.newBuilder().setOrderId("ORD-106").setStockSymbol("FPT").setQuantity(100).setPrice(136500).setOrderType("BUY").build()
+        );
+
+        // sending multiple order request from client
+        try {
+            for (StockOrder order : liveOrders) {
+                System.out.printf("[CLIENT ->] Sending %-8s | %-4s %3d %-5s @ %.2f%n",
+                        order.getOrderId(),
+                        order.getOrderType(),
+                        order.getQuantity(),
+                        order.getStockSymbol(),
+                        order.getPrice());
+
+                requestObserver.onNext(order);
+                Thread.sleep(800);
+            }
+        } catch (Exception e) {
+            requestObserver.onError(e);
+            return;
+        }
+        requestObserver.onCompleted();
+    }
 }

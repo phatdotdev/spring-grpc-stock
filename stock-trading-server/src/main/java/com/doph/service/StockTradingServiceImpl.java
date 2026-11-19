@@ -5,9 +5,12 @@ import com.doph.grpc.*;
 import com.doph.repository.StockRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.grpc.server.service.GrpcService;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -84,6 +87,40 @@ public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradin
                         .setTotalAmount(totalAmount)
                         .build();
                 responseObserver.onNext(summary);
+                responseObserver.onCompleted();
+            }
+        };
+    }
+
+    @Override
+    public StreamObserver<StockOrder> liveTrading(StreamObserver<TradeStatus> responseObserver){
+        return new StreamObserver<StockOrder>() {
+
+            @Override
+            public void onNext(StockOrder order) {
+                System.out.println("Received order: " + order);
+                String status="EXECUTED";
+                String message = "Order placed successfully.";
+                if(order.getQuantity() <= 0){
+                    status="FAILED";
+                    message="Invalid quantity";
+                }
+                TradeStatus tradeStatus = TradeStatus.newBuilder()
+                        .setOrderId(order.getOrderId())
+                        .setMessage(message)
+                        .setStatus(status)
+                        .setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                        .build();
+                responseObserver.onNext(tradeStatus);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                System.out.println("Received error: " + t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
                 responseObserver.onCompleted();
             }
         };
