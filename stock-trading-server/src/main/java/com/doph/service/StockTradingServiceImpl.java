@@ -1,9 +1,7 @@
 package com.doph.service;
 
 import com.doph.entity.Stock;
-import com.doph.grpc.StockRequest;
-import com.doph.grpc.StockResponse;
-import com.doph.grpc.StockTradingServiceGrpc;
+import com.doph.grpc.*;
 import com.doph.repository.StockRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +33,7 @@ public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradin
     }
 
     @Override
-    public void subscribeStockPrice(StockRequest request, StreamObserver<com.doph.grpc.StockResponse> responseObserver) {
+    public void subscribeStockPrice(StockRequest request, StreamObserver<StockResponse> responseObserver) {
         String stockSymbol = request.getStockSymbol();
         Stock stockEntity = stockRepository.findByStockSymbol(stockSymbol).orElse(null);
         try {
@@ -53,6 +51,42 @@ public class StockTradingServiceImpl extends StockTradingServiceGrpc.StockTradin
         }catch(InterruptedException ex){
             responseObserver.onError(ex);
         }
+    }
+
+    @Override
+    public StreamObserver<StockOrder> bulkStockOrder(StreamObserver<OrderSummary> responseObserver) {
+        return new StreamObserver<>() {
+            private int totalOrders = 0;
+            private double totalAmount = 0;
+            private int successCount = 0;
+
+            @Override
+            public void onNext(StockOrder order) {
+                totalOrders++;
+                if (order.getQuantity() > 0 && order.getPrice() > 0) {
+                    totalAmount += order.getQuantity() * order.getPrice();
+                    successCount++;
+                } else {
+                    System.out.println("Invalid order skipped: " + order.getOrderId());
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                System.err.println("Client cancelled or stream error: " + throwable.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                OrderSummary summary = OrderSummary.newBuilder()
+                        .setTotalOrders(totalOrders)
+                        .setSuccessCount(successCount)
+                        .setTotalAmount(totalAmount)
+                        .build();
+                responseObserver.onNext(summary);
+                responseObserver.onCompleted();
+            }
+        };
     }
 
 }

@@ -23,6 +23,7 @@ public class StockTradingClientApplication implements CommandLineRunner {
 //				+ stockClientService.getStockPrice("VCB")
 //		);
 
-		stockClientService.subscribeStockPrice("VCB");
+//		stockClientService.subscribeStockPrice("VCB");
+		stockClientService.placeBulkOrders();
 	}
 }
