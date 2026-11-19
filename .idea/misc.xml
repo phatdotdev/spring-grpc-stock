@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/protobuff/pom.xml" />
         <option value="$PROJECT_DIR$/stock-trading-server/pom.xml" />
+        <option value="$PROJECT_DIR$/stock-trading-client/pom.xml" />
       </list>
     </option>
   </component>

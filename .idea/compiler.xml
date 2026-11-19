@@ -17,7 +17,7 @@
         </processorPath>
         <module name="protobuff" />
       </profile>
-      <profile name="Annotation profile for stock-trading-server" enabled="true">
+      <profile name="Annotation profile for stock-trading-client" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -25,12 +25,14 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.48/lombok-1.18.48.jar" />
         </processorPath>
         <module name="stock-trading-server" />
+        <module name="stock-trading-client" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="protobuff" options="-parameters" />
+      <module name="stock-trading-client" options="-parameters" />
       <module name="stock-trading-server" options="-parameters" />
     </option>
   </component>
